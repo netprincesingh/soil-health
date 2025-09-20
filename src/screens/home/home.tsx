@@ -14,19 +14,25 @@ import { Buffer } from 'buffer';
 
 
 
-// --- Fill in your ESP32's details here! ---
-const DEVICE_NAME = 'MyESP32'; // The name you set in your ESP32 code
+
+const DEVICE_NAME = 'MyESP32';
 const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
 const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
-// ---------------------------------------------
 
 const bleManager = new BleManager();
 
-const App = () => {
-  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 
-  // ✅ STATE IS NOW AN ARRAY to store all messages
+
+
+
+
+const Home = () => {
+
+
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [receivedMessages, setReceivedMessages] = useState([]);
+
+
 
   // Request permissions
   useEffect(() => {
@@ -42,8 +48,13 @@ const App = () => {
     requestPermissions();
   }, []);
 
+
+
+
+
   // Scan for devices
   const startScan = () => {
+
     console.log('Scanning...');
     setConnectionStatus('Scanning...');
     setReceivedMessages([]); // Clear messages on new scan
@@ -56,12 +67,20 @@ const App = () => {
         bleManager.stopDeviceScan();
         connectToDevice(scannedDevice);
       }
-    });
-  };
 
-  // Connect and monitor for data
+    });
+  }
+
+
+
+
+
+
+
   const connectToDevice = async (device) => {
+
     try {
+
       setConnectionStatus('Connecting...');
       await device.connect();
       setConnectionStatus('Connected');
@@ -80,7 +99,7 @@ const App = () => {
           const message = Buffer.from(characteristic.value, 'base64').toString('ascii');
           console.log('Received:', message);
 
-          // ✅ APPEND a new message to the array instead of overwriting
+          //APPEND a new message to the array instead of overwriting
           setReceivedMessages(prevMessages => [...prevMessages, message]);
         },
       );
@@ -88,53 +107,98 @@ const App = () => {
       console.error('Connection error:', error);
       setConnectionStatus('Connection Failed');
     }
-  };
+
+  }
+
+
+
 
   return (
+
     <SafeAreaView style={styles.container}>
+
       <View style={styles.header}>
-        <Text style={styles.title}>BLE Message Log</Text>
+        <Text style={styles.title}>Sensor Value</Text>
         <Text style={styles.statusText}>Status: {connectionStatus}</Text>
+
         <TouchableOpacity style={styles.button} onPress={startScan}>
-          <Text style={styles.buttonText}>Scan and Connect</Text>
+
+          {connectionStatus === "Connected" ? (
+            <Text style={styles.buttonText}>Connected</Text>
+          ) : (
+            <Text style={styles.buttonText}>Scan and Connect</Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* ✅ SCROLLVIEW to display the list of messages */}
-      <ScrollView style={styles.logContainer}>
-        {receivedMessages.map((message, index) => (
-          <Text key={index} style={styles.logText}>
-            {`[${index + 1}]: ${message}`}
-          </Text>
-        ))}
+
+
+
+      <ScrollView
+        style={styles.logContainer}
+        showsVerticalScrollIndicator={false}
+
+      >
+
+        <ScrollView
+          style={styles.logContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {receivedMessages.map((message, index) => (
+            <Text
+              key={index}
+              // Apply styles conditionally
+              style={[
+                styles.logText, // Your base style
+                // If the message includes 'Temp', add an extra style object
+                message.includes('Temp') && { marginBottom: 50 }
+              ]}
+            >
+              {`${index + 1}. ${message}`}
+            </Text>
+          ))}
+        </ScrollView>
+
       </ScrollView>
+
+
+
     </SafeAreaView>
+
   );
-};
+}
+
+
+
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f8ff',
+    paddingBottom:50,
+    paddingHorizontal:20,
+    backgroundColor:"white",
+
   },
   header: {
+    paddingTop: 50,
     padding: 20,
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
+
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#005a9c',
+    fontWeight: '600',
+    color: 'black',
   },
+
   statusText: {
     fontSize: 16,
     color: '#333',
     marginVertical: 10,
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: 'black',
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,
@@ -142,21 +206,27 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
   logContainer: {
     flex: 1,
-    padding: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
+    backgroundColor:"#cef6c1ff",
+    borderRadius:10,
+    marginBottom:80,
+    paddingBottom:10,
+
   },
   logText: {
+    paddingLeft:5,
     fontSize: 14,
-    color: '#000',
     marginBottom: 5,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderWidth: 1,
+    borderRadius:7,
+    borderColor: 'black',
     paddingBottom: 5,
   },
 });
 
-export default App;
+export default Home;

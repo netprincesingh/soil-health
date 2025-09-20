@@ -2,8 +2,8 @@ import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icons from '@react-native-vector-icons/material-icons';
 
-import Home from "../screens/home/home";
-import Predict from "../screens/predict/predict";
+import Home from "../screens/home/Home";
+import Predict from "../screens/predict/Predict";
 
 const Tab = createBottomTabNavigator();
 
