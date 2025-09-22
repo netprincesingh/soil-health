@@ -4,6 +4,8 @@ import Icons from '@react-native-vector-icons/material-icons';
 
 import Home from "../screens/home/Home";
 import Predict from "../screens/predict/Predict";
+import Saved from "../screens/saved/Saved";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -23,6 +25,10 @@ export default function BottomTabNavigator(){
                     else if(route.name == 'Predict')
                     {
                         iconName = focused? 'device-hub' : 'device-hub';
+                    }
+                    else if(route.name == 'Saved')
+                    {
+                        iconName = focused? 'archive' : 'archive';
                     }
                     
                     return <Icons name={iconName} size={size} color={color} />;
@@ -47,6 +53,7 @@ export default function BottomTabNavigator(){
             })}
         >
             <Tab.Screen name="Home" component={Home} />
+            <Tab.Screen name="Saved" component={Saved}/>
             <Tab.Screen name="Predict" component={Predict} />
             
         

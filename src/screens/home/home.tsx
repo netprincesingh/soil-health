@@ -4,14 +4,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   View,
-  ScrollView,
   PermissionsAndroid,
   Platform,
+  FlatList,
+  ScrollView,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleSaveMessage, selectSavedMessages } from "../../redux/slices/messagesSlice";
+import Icon from '@react-native-vector-icons/material-icons';
+import LinearGradient from "react-native-linear-gradient";
 
 
 
@@ -21,20 +26,23 @@ const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
 const bleManager = new BleManager();
 
-
-
-
-
-
 const Home = () => {
 
 
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [receivedMessages, setReceivedMessages] = useState([]);
 
+  const dispatch = useDispatch();
+  const savedMessages = useSelector(selectSavedMessages);
+
+  // This function checks if a message is in the Redux store
+  const isMessageSaved = (messageId) => {
+    return savedMessages.some((msg) => msg.id === messageId);
+  };
 
 
-  // Request permissions
+
+  // Request permissions (no changes needed here)
   useEffect(() => {
     const requestPermissions = async () => {
       if (Platform.OS === 'android') {
@@ -52,12 +60,10 @@ const Home = () => {
 
 
 
-  // Scan for devices
   const startScan = () => {
-
     console.log('Scanning...');
     setConnectionStatus('Scanning...');
-    setReceivedMessages([]); // Clear messages on new scan
+    setReceivedMessages([]);
     bleManager.startDeviceScan(null, null, (error, scannedDevice) => {
       if (error) {
         console.error(error);
@@ -67,11 +73,8 @@ const Home = () => {
         bleManager.stopDeviceScan();
         connectToDevice(scannedDevice);
       }
-
     });
-  }
-
-
+  };
 
 
 
@@ -80,13 +83,10 @@ const Home = () => {
   const connectToDevice = async (device) => {
 
     try {
-
       setConnectionStatus('Connecting...');
       await device.connect();
       setConnectionStatus('Connected');
       await device.discoverAllServicesAndCharacteristics();
-
-      // Monitor the characteristic for notifications
       device.monitorCharacteristicForService(
         SERVICE_UUID,
         CHARACTERISTIC_UUID,
@@ -95,137 +95,156 @@ const Home = () => {
             console.error(error);
             return;
           }
-          // Decode the received value
-          const message = Buffer.from(characteristic.value, 'base64').toString('ascii');
-          console.log('Received:', message);
+          const text = Buffer.from(characteristic.value, 'base64').toString('ascii');
+          console.log('Received:', text);
 
-          //APPEND a new message to the array instead of overwriting
-          setReceivedMessages(prevMessages => [...prevMessages, message]);
+          // Create a new message object with a unique ID
+          const newMessage = {
+            id: `${Date.now()}-${text}`, // Simple unique ID
+            text: text,
+          };
+
+          // Add the new message object to the top of the list
+          setReceivedMessages(prevMessages => [newMessage, ...prevMessages]);
         },
       );
     } catch (error) {
       console.error('Connection error:', error);
       setConnectionStatus('Connection Failed');
     }
-
-  }
-
+  };
 
 
 
-  return (
 
-    <SafeAreaView style={styles.container}>
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Sensor Value</Text>
-        <Text style={styles.statusText}>Status: {connectionStatus}</Text>
 
-        <TouchableOpacity style={styles.button} onPress={startScan}>
+  const renderMessage = ({ item }) => {
 
-          {connectionStatus === "Connected" ? (
-            <Text style={styles.buttonText}>Connected</Text>
-          ) : (
-            <Text style={styles.buttonText}>Scan and Connect</Text>
-          )}
+    const isSaved = isMessageSaved(item.id);
+    return (
+      <View  style={[styles.logItemContainer, item.text.includes('Temp') && { marginBottom: 30 }]}>
+        <Text style={styles.logText}>
+          {item.text}
+        </Text>
+
+        <TouchableOpacity onPress={() => dispatch(toggleSaveMessage(item))}>
+          <Icon
+            name={isSaved ? 'bookmark' : 'bookmark-outline'}
+            size={24}
+            color={isSaved ? 'black' : 'grey'}
+          />
         </TouchableOpacity>
+
+
       </View>
 
 
 
+    );
+  };
 
-      <ScrollView
-        style={styles.logContainer}
-        showsVerticalScrollIndicator={false}
 
-      >
 
-        <ScrollView
-          style={styles.logContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {receivedMessages.map((message, index) => (
-            <Text
-              key={index}
-              // Apply styles conditionally
-              style={[
-                styles.logText, // Your base style
-                // If the message includes 'Temp', add an extra style object
-                message.includes('Temp') && { marginBottom: 50 }
-              ]}
-            >
-              {`${index + 1}. ${message}`}
+  return (
+    <LinearGradient
+      colors={['#C3C8FF', '#FBE8FF', '#FFF5E3', '#FFFFFF']}
+      style={styles.gradient}
+    >
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar translucent={true} backgroundColor={'transparent'} barStyle="dark-content" />
+
+          <View style={styles.header}>
+            <Text style={styles.title}>Sensor Value</Text>
+            <Text style={styles.statusText}>Status: {connectionStatus}</Text>
+            <TouchableOpacity style={styles.button} onPress={startScan}>
+            <Text style={styles.buttonText}>
+              {connectionStatus === "Connected" ? "Connected" : "Scan and Connect"}
             </Text>
-          ))}
-        </ScrollView>
+          </TouchableOpacity>
 
-      </ScrollView>
-
+          </View>
 
 
-    </SafeAreaView>
+          <FlatList
 
-  );
+            style={styles.logContainer}
+            data={receivedMessages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+
+          />
+
+
+
+
+      </SafeAreaView>
+      </LinearGradient>
+      );
 }
 
 
-
-
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingBottom:50,
-    paddingHorizontal:20,
-    backgroundColor:"white",
-
+  gradient:{
+    flex:1,
   },
-  header: {
-    paddingTop: 50,
-    padding: 20,
-    alignItems: 'center',
-
+  safeArea:{
+    flex:1,
+    paddingHorizontal:15,
+    paddingTop:20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'black',
-  },
-
-  statusText: {
-    fontSize: 16,
-    color: '#333',
-    marginVertical: 10,
-  },
-  button: {
-    backgroundColor: 'black',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  logContainer: {
-    flex: 1,
-    paddingLeft: 10,
-    paddingRight: 10,
-    backgroundColor:"#cef6c1ff",
+  logContainer:{
+    height:200,
+    backgroundColor:"rgba(255,255,255,0.6)",
+    marginBottom:100,
     borderRadius:10,
-    marginBottom:80,
-    paddingBottom:10,
+    paddingHorizontal:10,
+  },
+  header:{
+    paddingBottom:25,
+  },
+  title:{
+    fontSize:24,
+    textAlign:"center",
+    fontWeight:"500",
+  },
+  statusText:{
+    fontSize:14,
+    textAlign:"center",
+    fontWeight:"300",
+  },
+  button:{
+    height:50,
+    backgroundColor:"black",
+    borderRadius:10,
+    justifyContent:"center",
+    marginTop:10,
+  },
+  buttonText:{
+    color:"#ffffff",
+    textAlign:"center",
+    fontWeight:"500",
+    fontSize:18,
+    
+
 
   },
-  logText: {
-    paddingLeft:5,
-    fontSize: 14,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderRadius:7,
-    borderColor: 'black',
-    paddingBottom: 5,
+  logItemContainer:{
+    //flex:1,
+    borderWidth:1,
+    borderColor:"grey",
+    flexDirection:"row",
+    justifyContent:"space-between",
+
+    borderRadius:10,
+    marginVertical:5,
+    paddingHorizontal:10,
+    alignItems:"center",
+
+  },
+  logText:{
+
   },
 });
 
