@@ -26,10 +26,21 @@ const Saved = () => {
   const renderSavedMessage = ({ item }) => (
 
     <View style={styles.messageItemContainer}>
-      <Text style={styles.messageText}>{item.text}</Text>
+
+      <View>
+        <Text style={styles.messageText}>{item.text}</Text>
+        <Text style={styles.savedItemTimestamp}>
+          {new Date(item.timestamp).toLocaleString()}
+        </Text>
+      </View>
+
       <TouchableOpacity onPress={() => dispatch(deleteSavedMessage(item.id))}>
         <Icon name="delete" size={24} color="#e74c3c" />
       </TouchableOpacity>
+
+
+
+
     </View>
 
   );
@@ -40,29 +51,29 @@ const Saved = () => {
       colors={['#C3C8FF', '#FBE8FF', '#FFF5E3', '#FFFFFF']}
       style={styles.gradient}
     >
-    <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container}>
 
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Saved Values</Text>
-      </View>
-
-
-      {savedMessages.length > 0 ? (
-        <FlatList
-          data={savedMessages}
-          renderItem={renderSavedMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No saved messages yet.</Text>
-          <Text style={styles.emptySubText}>Go to the Home screen and tap the bookmark icon to save a message</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Saved Values</Text>
         </View>
-      )}
-    </SafeAreaView>
+
+
+        {savedMessages.length > 0 ? (
+          <FlatList
+            data={savedMessages}
+            renderItem={renderSavedMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No saved messages yet.</Text>
+            <Text style={styles.emptySubText}>Go to the Home screen and tap the bookmark icon to save a message</Text>
+          </View>
+        )}
+      </SafeAreaView>
     </LinearGradient>
 
 
@@ -70,11 +81,12 @@ const Saved = () => {
 };
 
 const styles = StyleSheet.create({
-  gradient:{
-    flex:1,
+  gradient: {
+    flex: 1,
   },
   container: {
     flex: 1,
+    paddingBottom:80,
   },
   header: {
     padding: 20,
@@ -121,6 +133,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  savedItemTimestamp: {
+    fontSize:13,
+    color:"grey",
+    paddingTop:5,
+
+  }
 });
 
 export default Saved;
