@@ -129,11 +129,11 @@ const Home = () => {
           {item.text}
         </Text>
 
-        <TouchableOpacity onPress={() => dispatch(toggleSaveMessage(item))}>
+        <TouchableOpacity style={styles.saveIcon} onPress={() => dispatch(toggleSaveMessage(item))}>
           <Icon
             name={isSaved ? 'bookmark' : 'bookmark-outline'}
-            size={24}
-            color={isSaved ? 'black' : 'grey'}
+            size={20}
+            color={isSaved ? 'black' : 'black'}
           />
         </TouchableOpacity>
 
@@ -242,11 +242,20 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     paddingHorizontal: 10,
     alignItems: "center",
+    height:40,
 
   },
   logText: {
 
   },
+  saveIcon:{
+    backgroundColor:"#C3C8FF",
+    height:28,
+    width:28,
+    borderRadius:10,
+    alignItems:"center",
+    justifyContent:"center",
+  }
 });
 
 export default Home;

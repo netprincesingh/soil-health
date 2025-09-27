@@ -88,13 +88,15 @@ const Saved = () => {
         </Text>
       </View>
 
+      <View style ={styles.iconContainer}>
       <TouchableOpacity  onPress={() => handleSendToPredict(item)}>
         <Icon name="analytics" size={24} color="#007AFF" />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => dispatch(deleteSavedMessage(item.id))}>
+      <TouchableOpacity style={{marginLeft:20,}} onPress={() => dispatch(deleteSavedMessage(item.id))}>
         <Icon name="delete" size={24} color="#e74c3c" />
       </TouchableOpacity>
+      </View>
 
     </View>
 
@@ -192,6 +194,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "grey",
     paddingTop: 5,
+
+  },
+  iconContainer:{
+    flexDirection:"row",
 
   }
 });

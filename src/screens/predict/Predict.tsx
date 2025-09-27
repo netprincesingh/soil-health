@@ -59,6 +59,17 @@ const Predict = () => {
         Alert.alert('Success', 'Data has been pulled from saved values.');
     };
 
+    const handleReset = () => {
+        setNitrogen('');
+        setPhosphorus('');
+        setPotassium('');
+        setPh('');
+        setTemperature('');
+        setHumidity('');
+        setResult('');
+
+    };
+
 
 
 
@@ -114,6 +125,9 @@ const Predict = () => {
             style={styles.gradient}
         >
             <SafeAreaView style={styles.safe}>
+
+
+
                 <Text style={styles.title}>Find your best suitable crop</Text>
                 <View style={styles.container}>
                     <TextInput
@@ -169,7 +183,11 @@ const Predict = () => {
                 </View>
 
                 {isLoading && <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />}
-                <Text style = {styles.resultText}>{result}</Text>
+                <Text style={styles.resultText}>{result}</Text>
+
+                <Pressable onPress={handleReset} style={{}}>
+                    <Text style={{ fontSize: 17, color: "red", fontWeight: "300" }}>Refresh</Text>
+                </Pressable>
 
             </SafeAreaView>
         </LinearGradient>
@@ -221,11 +239,11 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "500",
     },
-    resultText:{
-        fontSize:30,
-        textAlign:"center",
-        marginTop:20,
-       // borderWidth:2,
+    resultText: {
+        fontSize: 30,
+        textAlign: "center",
+        marginTop: 20,
+        // borderWidth:2,
         //width:100,
     }
 })
