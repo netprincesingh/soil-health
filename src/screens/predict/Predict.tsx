@@ -3,6 +3,8 @@ import LinearGradient from "react-native-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState } from "react";
+import { selectPredictionData } from '../../redux/slices/predictionSlice';
+import { useSelector } from 'react-redux';
 
 const API_URL = "https://netprincesingh.pythonanywhere.com/api/predict/";
 
@@ -24,6 +26,41 @@ const Predict = () => {
 
     const [result, setResult] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const predictionData = useSelector(selectPredictionData);
+
+
+    const handlePullData = () => {
+        // Handle NPK string: "50, 30, 20"
+        if (predictionData.npk) {
+            const npkValues = predictionData.npk.split(',').map(v => v.trim());
+            if (npkValues.length === 3) {
+                setNitrogen(npkValues[0]);
+                setPhosphorus(npkValues[1]);
+                setPotassium(npkValues[2]);
+            }
+        }
+
+        // Handle Temp/Humidity string: "25C, 60%"
+        if (predictionData.tempHumidity) {
+            const tempHumValues = predictionData.tempHumidity.split(',').map(v => v.trim());
+            if (tempHumValues.length === 2) {
+                // Extracts just the numbers
+                setTemperature(tempHumValues[0].match(/\d+/)?.[0] || '');
+                setHumidity(tempHumValues[1].match(/\d+/)?.[0] || '');
+            }
+        }
+
+        // Handle pH
+        if (predictionData.ph) {
+            setPh(predictionData.ph);
+        }
+
+        Alert.alert('Success', 'Data has been pulled from saved values.');
+    };
+
+
+
 
     const handlePredict = async () => {
         if (!nitrogen || !phosphorus || !potassium || !ph || !temperature || !humidity) {
@@ -123,10 +160,15 @@ const Predict = () => {
                     />
 
                     <Pressable style={styles.button} onPress={handlePredict}>
-                        <Text style={styles.buttonText}>Predict</Text>
+                        <Text style={styles.buttonText}>{isLoading ? 'Predicting...' : 'Predict'}</Text>
+                    </Pressable>
+
+                    <Pressable style={styles.button} onPress={handlePullData}>
+                        <Text style={styles.buttonText}>Pull Sensor Data</Text>
                     </Pressable>
                 </View>
 
+                {isLoading && <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />}
                 <Text style = {styles.resultText}>{result}</Text>
 
             </SafeAreaView>
@@ -153,7 +195,7 @@ const styles = StyleSheet.create({
     },
     container: {
         backgroundColor: "rgba(255,255,255,0.6)",
-        height: 500,
+        height: 570,
         paddingHorizontal: 10,
         paddingTop: 20,
         borderRadius: 20,
