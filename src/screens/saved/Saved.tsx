@@ -17,9 +17,21 @@ import { setPredictionData } from '../../redux/slices/predictionSlice';
 import Icon from '@react-native-vector-icons/material-icons';
 import LinearGradient from 'react-native-linear-gradient';
 
+type PredictionData = {
+  npk: string;
+  ph: string;
+  tempHumidity: string;
+};
+
+type SavedMessage = {
+  id: string;
+  text: string;
+  timestamp: number;
+};
+
+const parseMessageForPrediction = (messageText: string): PredictionData=> {
 
 
-const parseMessageForPrediction = (messageText) => {
   let data = { npk: '', ph: '', tempHumidity: '' };
 
   // Case 1: NPK format like "12.0N 4.0P 6.0K NPK"
@@ -38,10 +50,10 @@ const parseMessageForPrediction = (messageText) => {
     return data;
   }
 
-  // Case 3: pH format like "8.10 ph"
-  const phMatch = messageText.match(/(\d+\.?\d*)\s*ph/);
+  // Case 3: pH format — now supports both "8.10 ph" and "ph 8.10"
+  const phMatch = messageText.match(/(?:ph\s*(\d+\.?\d*)|(\d+\.?\d*)\s*ph)/i);
   if (phMatch) {
-    data.ph = phMatch[1];
+    data.ph = phMatch[1] || phMatch[2];
     return data;
   }
 
@@ -51,14 +63,14 @@ const parseMessageForPrediction = (messageText) => {
 
 
 
-const Saved = () => {
+const Saved: React.FC = () => {
 
 
   const dispatch = useDispatch();
   const savedMessages = useSelector(selectSavedMessages);
 
 
-  const handleSendToPredict = (item) => {
+  const handleSendToPredict = (item:SavedMessage) => {
     const parsedData = parseMessageForPrediction(item.text);
 
     // Check if any data was actually parsed
@@ -77,7 +89,7 @@ const Saved = () => {
   };
 
 
-  const renderSavedMessage = ({ item }) => (
+  const renderSavedMessage = ({ item } :{ item: SavedMessage }) => (
 
     <View style={styles.messageItemContainer}>
 
